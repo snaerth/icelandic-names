@@ -1,6 +1,6 @@
 {
   "name": "icelandic-names",
-  "script": "--experimental-modules src/server.mjs",
+  "script": "src/server.js",
   "env": {
     "NODE_ENV": "production",
     "PORT": 1337

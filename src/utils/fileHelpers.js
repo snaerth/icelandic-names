@@ -1,12 +1,12 @@
-import fs from 'fs';
-import mkdirp from 'mkdirp';
+const fs = require('fs');
+const mkdirp = require('mkdirp');
 
 /**
  * Native async / await for reading file in node
  * @param {String} path - fs.readFile path
  * @param {String} opts - fs.readFile options
  */
-export function readFileAsync(path, opts = 'utf8') {
+function readFileAsync(path, opts = 'utf8') {
   return new Promise((resolve, reject) => {
     fs.readFile(path, opts, (err, data) => {
       if (err) {
@@ -24,7 +24,7 @@ export function readFileAsync(path, opts = 'utf8') {
  * @param {String} data - file content
  * @param {String} opts - fs.readFile options
  */
-export function writeFileAsync(path, data, opts = 'utf8') {
+function writeFileAsync(path, data, opts = 'utf8') {
   return new Promise((resolve, reject) => {
     fs.writeFile(path, data, opts, err => {
       if (err) {
@@ -40,7 +40,7 @@ export function writeFileAsync(path, data, opts = 'utf8') {
  * Native async / await for reading directorys in node
  * @param {String} path - fs.readFile path
  */
-export function readDirAsync(path) {
+function readDirAsync(path) {
   return new Promise((resolve, reject) => {
     fs.readdir(path, (err, filenames) => {
       if (err) {
@@ -56,7 +56,7 @@ export function readDirAsync(path) {
  * Native async / await for checking if file exists in node
  * @param {String} path - fs.readFile path
  */
-export function existsSyncAsync(path) {
+function existsSyncAsync(path) {
   return new Promise((resolve, reject) => {
     const exists = fs.existsSync(path);
     return exists ? resolve(true) : reject(false);
@@ -67,7 +67,7 @@ export function existsSyncAsync(path) {
  * Native async / await for creating directorys in node
  * @param {String} dir - directorys path
  */
-export function createDirectorys(dir) {
+function createDirectorys(dir) {
   return new Promise((resolve, reject) => {
     try {
       fs.exists(dir, async exists => {
@@ -82,3 +82,11 @@ export function createDirectorys(dir) {
     }
   });
 }
+
+module.exports = {
+  readFileAsync,
+  writeFileAsync,
+  readDirAsync,
+  existsSyncAsync,
+  createDirectorys,
+};

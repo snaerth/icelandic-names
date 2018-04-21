@@ -1,14 +1,12 @@
-import express from 'express';
-import cheerio from 'cheerio';
-import fetch from 'node-fetch';
-import cron from 'cron';
-import { readFileAsync } from './utils/fileHelpers';
-import initScraper from './utils/nameScraper';
+const express = require('express');
+const CronJob = require('cron').CronJob;
+const { readFileAsync } = require('./utils/fileHelpers');
+const initScraper = require('./utils/nameScraper');
 
 const app = express();
 
 // Tasks runs every day at 12:00 AM
-new cron.CronJob(
+new CronJob(
   '0 0 0 * * *',
   async () => {
     await initScraper();

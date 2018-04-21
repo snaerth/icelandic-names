@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "description": "Icelandic names REST service",
   "main": "server.js",
+  "babel": {
+    "presets": ["es2015"]
+  },
   "scripts": {
-    "dev": "NODE_ENV=development PORT=3000 nodemon --experimental-modules src/server.mjs",
-    "start": "NODE_ENV=production PORT=1337 node --experimental-modules src/server.mjs",
+    "dev": "NODE_ENV=development PORT=3000 nodemon src/server.js",
+    "start": "NODE_ENV=production PORT=1337 node src/server.js",
     "start:prod": "pm2 start pm2.json"
   },
   "keywords": ["icelandic_names", "mannanöfn", "stúlkunöfn", "strákanöfn", "millinöfn"],

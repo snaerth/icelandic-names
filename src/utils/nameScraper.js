@@ -1,6 +1,6 @@
-import cheerio from 'cheerio';
-import fetch from 'node-fetch';
-import { writeFileAsync } from './fileHelpers';
+const cheerio = require('cheerio');
+const fetch = require('node-fetch');
+const { writeFileAsync } = require('./fileHelpers');
 
 /**
  * Gets names data from Cheerio parsed html object
@@ -97,4 +97,4 @@ async function initScraper() {
   }
 }
 
-export default initScraper;
+module.exports = initScraper;
