@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "dev": "NODE_ENV=development PORT=3000 nodemon --experimental-modules src/server.mjs",
-    "start": "NODE_ENV=production PORT=1337 node --experimental-modules src/server.mjs"
+    "start": "NODE_ENV=production PORT=1337 node --experimental-modules src/server.mjs",
+    "start:prod": "pm2 start pm2.json"
   },
   "keywords": ["icelandic_names", "mannanöfn", "stúlkunöfn", "strákanöfn", "millinöfn"],
   "author": "Snær Seljan Þóroddsson",
