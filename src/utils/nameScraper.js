@@ -1,6 +1,33 @@
 const cheerio = require('cheerio');
+const uniqid = require('uniqid');
 const fetch = require('node-fetch');
 const { writeFileAsync } = require('./fileHelpers');
+
+/**
+ * Creates letter indexes and alhpabet array
+ * @param {Array} list - list of names object { id: '4n5pxq24kpiob12og9', name: 'Jon', subtitle: 'More info' }
+ * @returns {Object}
+ */
+function getLetterIndexesAndAlhpabet(list) {
+  const alphabet = [];
+  let i = 0;
+
+  const letterIndexes = list.reduce((acc, curr) => {
+    if (acc[curr.name[0]] === undefined) {
+      acc[curr.name[0]] = i;
+      alphabet.push(curr.name[0]);
+    }
+
+    i += 1;
+    return acc;
+  }, {});
+
+  return {
+    alphabet,
+    letterIndexes,
+    list,
+  };
+}
 
 /**
  * Gets names data from Cheerio parsed html object
@@ -15,19 +42,20 @@ function getDataFromList($, arr) {
       if (el.children.length === 0) return;
 
       const obj = {
+        id: uniqid(),
         name: $(el.children[0])
           .text()
           .trim(),
-        extra: '',
+        subtitle: '',
       };
 
       if (el.children.length > 1) {
-        const extra = $(el.children[1])
+        const subtitle = $(el.children[1])
           .text()
           .trim();
 
-        if (extra) {
-          obj.extra = extra;
+        if (subtitle) {
+          obj.subtitle = subtitle;
         }
       }
 
@@ -55,9 +83,9 @@ function parseHtml(html) {
       const middleNamesList = getDataFromList($, middleNamesObj);
 
       return resolve({
-        boys: boysNamesList,
-        girls: girlsNamesList,
-        middle: middleNamesList,
+        boys: getLetterIndexesAndAlhpabet(boysNamesList),
+        girls: getLetterIndexesAndAlhpabet(girlsNamesList),
+        middle: getLetterIndexesAndAlhpabet(middleNamesList),
       });
     } catch (error) {
       return reject(error);

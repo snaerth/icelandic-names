@@ -4,14 +4,22 @@
   "description": "Icelandic names REST service",
   "main": "server.js",
   "babel": {
-    "presets": ["es2015"]
+    "presets": [
+      "es2015"
+    ]
   },
   "scripts": {
     "dev": "NODE_ENV=development PORT=3000 nodemon src/server.js",
     "start": "NODE_ENV=production PORT=1337 node src/server.js",
     "start:prod": "pm2 start pm2.json"
   },
-  "keywords": ["icelandic_names", "mannanöfn", "stúlkunöfn", "strákanöfn", "millinöfn"],
+  "keywords": [
+    "icelandic_names",
+    "mannanöfn",
+    "stúlkunöfn",
+    "strákanöfn",
+    "millinöfn"
+  ],
   "author": "Snær Seljan Þóroddsson",
   "license": "ISC",
   "dependencies": {
@@ -23,6 +31,7 @@
     "node-fetch": "^2.1.2",
     "nodemon": "^1.17.3",
     "prettier": "^1.12.1",
-    "prettier-eslint": "^8.8.1"
+    "prettier-eslint": "^8.8.1",
+    "uniqid": "^4.1.1"
   }
 }
