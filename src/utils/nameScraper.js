@@ -1,5 +1,4 @@
 const cheerio = require('cheerio');
-const uniqid = require('uniqid');
 const fetch = require('node-fetch');
 const createUUID = require('./createUUID');
 const { writeFileAsync } = require('./fileHelpers');
