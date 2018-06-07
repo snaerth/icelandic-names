@@ -1,6 +1,7 @@
 const cheerio = require('cheerio');
 const uniqid = require('uniqid');
 const fetch = require('node-fetch');
+const createUUID = require('./createUUID');
 const { writeFileAsync } = require('./fileHelpers');
 
 /**
@@ -41,11 +42,12 @@ function getDataFromList($, arr) {
     .map((i, el) => {
       if (el.children.length === 0) return;
 
+      const name = $(el.children[0])
+        .text()
+        .trim();
       const obj = {
-        id: uniqid(),
-        name: $(el.children[0])
-          .text()
-          .trim(),
+        id: createUUID(name),
+        name,
         subtitle: '',
       };
 
