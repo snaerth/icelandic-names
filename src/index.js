@@ -1,7 +1,7 @@
-const express = require('express');
-const CronJob = require('cron').CronJob;
-const { readFileAsync } = require('./utils/fileHelpers');
-const initScraper = require('./utils/nameScraper');
+import express from 'express';
+import CronJob from 'cron';
+import { readFileAsync } from './utils/fileHelpers';
+import initScraper from './services/nameScraper';
 
 const app = express();
 
