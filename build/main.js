@@ -189,9 +189,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 const app = __WEBPACK_IMPORTED_MODULE_0_express___default()();
-
+const CronJob = __WEBPACK_IMPORTED_MODULE_1_cron___default.a.CronJob;
 // Tasks runs every day at 12:00 AM
-new __WEBPACK_IMPORTED_MODULE_1_cron___default.a('0 0 0 * * *', async () => {
+new CronJob('0 0 0 * * *', async () => {
   await Object(__WEBPACK_IMPORTED_MODULE_3__services_nameScraper__["a" /* default */])();
   console.log('Icelandic name scraper finished scaping data at: ', new Date().toDateString());
 }, null, true, 'Atlantic/Reykjavik');

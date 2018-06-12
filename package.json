@@ -4,9 +4,9 @@
   "description": "Icelandic names REST service",
   "main": "server.js",
   "scripts": {
-    "dev": "backpack",
+    "dev": "PORT=1337 backpack",
     "build": "backpack build",
-    "start": "NODE_ENV=production PORT=1337 node src/server.js",
+    "start": "NODE_ENV=production PORT=1337 node ./build/main.js",
     "start:prod": "pm2 start pm2.json"
   },
   "keywords": ["icelandic_names", "mannanöfn", "stúlkunöfn", "strákanöfn", "millinöfn"],

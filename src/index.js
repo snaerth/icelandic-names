@@ -1,10 +1,10 @@
 import express from 'express';
-import CronJob from 'cron';
+import cron from 'cron';
 import { readFileAsync } from './utils/fileHelpers';
 import initScraper from './services/nameScraper';
 
 const app = express();
-
+const CronJob = cron.CronJob;
 // Tasks runs every day at 12:00 AM
 new CronJob(
   '0 0 0 * * *',
