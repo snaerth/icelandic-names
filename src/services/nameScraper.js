@@ -1,7 +1,9 @@
 import cheerio from 'cheerio';
-import fetch from 'node-fetch';
+import getNameDeclension from './declensionScraper';
+import fetchHTML from '../utils/fetchHtml';
 import createUUID from '../utils/createUUID';
 import { writeFileAsync } from '../utils/fileHelpers';
+import delayPromiseBatches from '../utils/delayPromiseBatches';
 
 const CHEERIO_OPTIONS = { normalizeWhitespace: true };
 
@@ -40,18 +42,17 @@ function getLetterIndexesAndAlhpabet(list) {
  */
 function getDataFromList($, arr) {
   return arr
-    .map(async (i, el) => {
+    .map((i, el) => {
       if (el.children.length === 0) return;
 
       const name = $(el.children[0])
         .text()
         .trim();
-      const declesions = await getNameDeclension(name);
       const obj = {
         id: createUUID(name),
         name,
-        subtitle: '',
-        declesions,
+        verdict: null,
+        declesions: null,
       };
 
       if (el.children.length > 1) {
@@ -75,17 +76,30 @@ function getDataFromList($, arr) {
  * @param {String} html - Html text string
  * @returns {Promise<Object>}
  */
-function parseHtml(html) {
-  return new Promise((resolve, reject) => {
+function parseNamesHtml(html) {
+  return new Promise(async (resolve, reject) => {
     try {
       const $ = cheerio.load(html, CHEERIO_OPTIONS);
       const nameTypeList = $('.nafnalisti .nametype');
       const boysNamesObj = $(nameTypeList[0]).find('ul.dir li');
       const girlsNamesObj = $(nameTypeList[1]).find('ul.dir li');
       const middleNamesObj = $(nameTypeList[2]).find('ul.dir li');
-      const boysNamesList = getDataFromList($, boysNamesObj);
-      const girlsNamesList = getDataFromList($, girlsNamesObj);
-      const middleNamesList = getDataFromList($, middleNamesObj);
+      let boysNamesList = getDataFromList($, boysNamesObj);
+      let girlsNamesList = getDataFromList($, girlsNamesObj);
+      let middleNamesList = getDataFromList($, middleNamesObj);
+      const boysLen = boysNamesList.length;
+      const girlsLen = girlsNamesList.length;
+      const middleLen = middleNamesList.length;
+      const mergedList = [...boysNamesList, ...girlsNamesList, ...middleNamesList];
+      // Add declesions to items in list
+      console.log('TempList before');
+      const tempList = await getNameDeclesionsForList(mergedList);
+      console.log('TempList after');
+
+      // Split list up again. Now with declesions
+      boysNamesList = tempList.splice(0, boysLen);
+      girlsNamesList = tempList.splice(boysLen, boysLen + girlsLen);
+      middleNamesList = tempList.splice(boysLen + girlsLen, boysLen + girlsLen + middleLen);
 
       return resolve({
         boys: getLetterIndexesAndAlhpabet(boysNamesList),
@@ -93,120 +107,41 @@ function parseHtml(html) {
         middle: getLetterIndexesAndAlhpabet(middleNamesList),
       });
     } catch (error) {
+      console.log(error);
       return reject(error);
     }
   });
 }
 
 /**
- * Parses first response from Árnastofnun.
- * It Gets ID for the current name to make the next request
+ * Gets name declesions for every name in list and
+ * returns list with new gotten name declesions property
  *
- * @param {Function} $ - Cheerio function reference
- * @param {Object<Cheerio>} ul - Cherrio object
- * @returns {Number|null} responseVal
+ * @param {Array<Object>} list - Array of objects
+ * @returns {Array<Object>}
  */
-function parseNameDeclensionFirstResponse($, ul) {
-  let responseVal = null;
-
-  ul.each((i, li) => {
-    const arr = $(li)
-      .text()
-      .trim()
-      .toLowerCase()
-      .split(' ');
-
-    if (arr.includes('karlmannsnafn') || arr.includes('kvenmannsnafn')) {
-      const onClickAttrVal = $(li)
-        .find('a')
-        .attr('onclick');
-
-      responseVal = onClickAttrVal.match(/\d+/g)[0];
-    }
-  });
-
-  return responseVal;
-}
-
-/**
- * Parses name declesions (Beygingar) from html
- *
- * @param {String} html - HTML string
- * @returns {Array<String>} declesionArr
- */
-function parseNameDeclensions(html) {
-  const declesionArr = [];
-  const $ = cheerio.load(html, CHEERIO_OPTIONS);
-  const elements = $('.row-fluid div:first-child .VO_beygingarmynd');
-
-  if (elements.length > 0) {
-    elements.each((i, el) => {
-      declesionArr[i] = $(el).text();
-    });
-  }
-
-  return declesionArr;
-}
-
-/**
- * Parses, prepares and request name declension data
- *
- * @param {String} html - HTML string
- * @returns {Array<String>|null|Error}
- */
-async function prepareNameDeclension(html) {
-  let responseVal = null;
-
+async function getNameDeclesionsForList(list) {
   try {
-    const $ = cheerio.load(html, CHEERIO_OPTIONS);
-    const ul = $('ul li');
+    const chunkSize = 100;
+    const promises = [];
 
-    if (ul.length > 0) {
-      const id = parseNameDeclensionFirstResponse($, ul);
-      const url = `http://dev.phpbin.ja.is/ajax_leit.php?q=&id=${id}`;
-      const nextHtml = await fetchHTML(url);
-      responseVal = parseNameDeclensions(nextHtml);
-    } else {
-      responseVal = parseNameDeclensions(html);
+    // Iterate list and create multiple promises
+    for (let i = 0; i < list.length; i += 1) {
+      const name = list[i].name;
+      promises.push(getNameDeclension(name));
     }
 
-    return responseVal;
-  } catch (error) {
-    return error;
-  }
-}
+    const declesionsList = await delayPromiseBatches(promises, chunkSize, 100);
 
-/**
- * Fetches HTML for Icelandic name declesion (fallbeygingar)
- *
- * @param {String} name - Name string
- * @returns {Array<String>}
- * @example fetchNameDeclension('Snær') => [´Snær´, ´Snæ´, ´Snæ´, ´Snæs´]
- */
-async function getNameDeclension(name) {
-  try {
-    const url = `http://dev.phpbin.ja.is/ajax_leit.php?q=${encodeURIComponent(name)}`;
-    const html = await fetchHTML(url);
-    const parsedHTML = await prepareNameDeclension(html);
-    return parsedHTML;
-  } catch (error) {
-    return null;
-  }
-}
+    for (let i = 0; i < declesionsList.length; i += 1) {
+      if (Array.isArray(declesionsList[i]) && declesionsList[i].length > 0) {
+        list[i].declesions = declesionsList[i];
+      }
+    }
 
-/**
- * Fetches HTML string from desired page
- *
- * @param {String} url - Website url
- * @returns {String} HTML string
- */
-async function fetchHTML(url) {
-  try {
-    const res = await fetch(url);
-    const html = await res.text();
-    return html;
+    return list;
   } catch (error) {
-    return error;
+    return new Error(error);
   }
 }
 
@@ -214,11 +149,14 @@ async function fetchHTML(url) {
  * Initializes Icelandic names scraper
  */
 export default async function initScraper() {
+  // const test = await getNameDeclension('marteinn');
+  // console.log('test', test);
+  // return;
   try {
     const url =
       'https://www.island.is/mannanofn/leit-ad-nafni/?Nafn=&Stulkur=on&Drengir=on&Millinofn=on';
     const html = await fetchHTML(url);
-    const data = await parseHtml(html);
+    const data = await parseNamesHtml(html);
     await writeFileAsync('./data/names.json', JSON.stringify(data));
     return true;
   } catch (error) {

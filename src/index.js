@@ -6,16 +6,16 @@ import initScraper from './services/nameScraper';
 const app = express();
 const CronJob = cron.CronJob;
 // Tasks runs every day at 12:00 AM
-new CronJob(
-  '0 0 0 * * *',
-  async () => {
-    await initScraper();
-    console.log('Icelandic name scraper finished scaping data at: ', new Date().toDateString());
-  },
-  null,
-  true,
-  'Atlantic/Reykjavik'
-);
+// new CronJob(
+//   '0 0 0 * * *',
+//   async () => {
+//     await initScraper();
+//     console.log('Icelandic name scraper finished scaping data at: ', new Date().toDateString());
+//   },
+//   null,
+//   true,
+//   'Atlantic/Reykjavik'
+// );
 
 initScraper();
 
