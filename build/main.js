@@ -214,10 +214,15 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_cron___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_cron__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utils_fileHelpers__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__services_nameScraper__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__database__ = __webpack_require__(16);
 
 
 
 
+
+
+// https://github.com/facebook/react/issues/812#issuecomment-172929366
+process.env = JSON.parse(JSON.stringify(process.env));
 
 const app = __WEBPACK_IMPORTED_MODULE_0_express___default()();
 const CronJob = __WEBPACK_IMPORTED_MODULE_1_cron___default.a.CronJob;
@@ -233,7 +238,10 @@ const CronJob = __WEBPACK_IMPORTED_MODULE_1_cron___default.a.CronJob;
 //   'Atlantic/Reykjavik'
 // );
 
-Object(__WEBPACK_IMPORTED_MODULE_3__services_nameScraper__["a" /* default */])();
+//initScraper();
+
+// Connect to Postgresql database
+Object(__WEBPACK_IMPORTED_MODULE_4__database__["a" /* dbQuery */])('SELECT * from bin limit 10');
 
 /**
  * Gets all names
@@ -471,7 +479,7 @@ function parseNamesHtml(html) {
  */
 async function getNameDeclesionsForList(list) {
   try {
-    const chunkSize = 100;
+    const chunkSize = 10;
     const promises = [];
 
     // Iterate list and create multiple promises
@@ -480,7 +488,7 @@ async function getNameDeclesionsForList(list) {
       promises.push(Object(__WEBPACK_IMPORTED_MODULE_1__declensionScraper__["a" /* default */])(name));
     }
 
-    const declesionsList = await Object(__WEBPACK_IMPORTED_MODULE_5__utils_delayPromiseBatches__["a" /* default */])(promises, chunkSize, 100);
+    const declesionsList = await Object(__WEBPACK_IMPORTED_MODULE_5__utils_delayPromiseBatches__["a" /* default */])(promises, chunkSize, 1000);
 
     for (let i = 0; i < declesionsList.length; i += 1) {
       if (Array.isArray(declesionsList[i]) && declesionsList[i].length > 0) {
@@ -497,7 +505,7 @@ async function getNameDeclesionsForList(list) {
 /**
  * Initializes Icelandic names scraper
  */
-/* harmony default export */ __webpack_exports__["a"] = (async function initScraper() {
+/* unused harmony default export */ var _unused_webpack_default_export = (async function initScraper() {
   // const test = await getNameDeclension('marteinn');
   // console.log('test', test);
   // return;
@@ -747,6 +755,98 @@ function splitToChunks(arr, chunk) {
 
   return chunkArr;
 }
+
+/***/ }),
+/* 16 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = dbQuery;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_pg__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_pg___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_pg__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__config__ = __webpack_require__(18);
+
+
+
+const {
+  DB_USER,
+  DB_HOST,
+  DB_DATABASE,
+  DB_PASSWORD,
+  DB_PORT
+} = __WEBPACK_IMPORTED_MODULE_1__config__["a" /* default */];
+
+// Set connection options for Postgresql
+const pool = new __WEBPACK_IMPORTED_MODULE_0_pg__["Pool"]({
+  user: DB_USER,
+  host: DB_HOST,
+  database: DB_DATABASE,
+  password: DB_PASSWORD,
+  port: DB_PORT
+});
+
+/**
+ * Postgresql pool query for executing queries
+ * 
+ * @param {String} text - Query text
+ * @param {Array} params - Query values
+ * @returns {Object}
+ */
+async function dbQuery(text, params) {
+  const start = Date.now();
+
+  try {
+    const { rows } = await pool.query(text, params);
+    await pool.end();
+    const duration = Date.now() - start;
+
+    return { query: text, duration, rows };
+  } catch (error) {
+    return new Error(error);
+  }
+}
+
+/***/ }),
+/* 17 */
+/***/ (function(module, exports) {
+
+module.exports = require("pg");
+
+/***/ }),
+/* 18 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_dotenv__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_dotenv___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_dotenv__);
+// Eviromental variables
+
+
+__WEBPACK_IMPORTED_MODULE_0_dotenv___default.a.config();
+
+const {
+  DB_USER,
+  DB_HOST,
+  DB_DATABASE,
+  DB_PASSWORD,
+  DB_PORT
+} = process.env;
+
+const config = {
+  DB_USER,
+  DB_HOST,
+  DB_DATABASE,
+  DB_PASSWORD,
+  DB_PORT
+};
+
+/* harmony default export */ __webpack_exports__["a"] = (config);
+
+/***/ }),
+/* 19 */
+/***/ (function(module, exports) {
+
+module.exports = require("dotenv");
 
 /***/ })
 /******/ ]);

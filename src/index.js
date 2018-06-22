@@ -2,6 +2,11 @@ import express from 'express';
 import cron from 'cron';
 import { readFileAsync } from './utils/fileHelpers';
 import initScraper from './services/nameScraper';
+import { dbQuery } from './database';
+
+// https://github.com/facebook/react/issues/812#issuecomment-172929366
+process.env = JSON.parse(JSON.stringify(process.env));
+
 
 const app = express();
 const CronJob = cron.CronJob;
@@ -17,7 +22,10 @@ const CronJob = cron.CronJob;
 //   'Atlantic/Reykjavik'
 // );
 
-initScraper();
+//initScraper();
+
+// Connect to Postgresql database
+dbQuery('SELECT * from bin limit 10');
 
 /**
  * Gets all names

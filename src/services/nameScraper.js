@@ -122,7 +122,7 @@ function parseNamesHtml(html) {
  */
 async function getNameDeclesionsForList(list) {
   try {
-    const chunkSize = 100;
+    const chunkSize = 10;
     const promises = [];
 
     // Iterate list and create multiple promises
@@ -131,7 +131,7 @@ async function getNameDeclesionsForList(list) {
       promises.push(getNameDeclension(name));
     }
 
-    const declesionsList = await delayPromiseBatches(promises, chunkSize, 100);
+    const declesionsList = await delayPromiseBatches(promises, chunkSize, 1000);
 
     for (let i = 0; i < declesionsList.length; i += 1) {
       if (Array.isArray(declesionsList[i]) && declesionsList[i].length > 0) {
