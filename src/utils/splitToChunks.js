@@ -10,7 +10,7 @@
 export default function splitToChunks(arr, chunk) {
   const chunkArr = [];
 
-  for (var i = 0; i < arr.length; i = i + chunk) {
+  for (let i = 0; i < arr.length; i += chunk) {
     chunkArr.push(arr.slice(i, i + chunk));
   }
 

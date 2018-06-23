@@ -24,3 +24,6 @@ yarn.lock
 
 # Env files
 .env*
+
+# Build
+build

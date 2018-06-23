@@ -2,30 +2,26 @@ import express from 'express';
 import cron from 'cron';
 import { readFileAsync } from './utils/fileHelpers';
 import initScraper from './services/nameScraper';
-import { dbQuery } from './database';
 
-// https://github.com/facebook/react/issues/812#issuecomment-172929366
 process.env = JSON.parse(JSON.stringify(process.env));
 
-
 const app = express();
-const CronJob = cron.CronJob;
-// Tasks runs every day at 12:00 AM
-// new CronJob(
-//   '0 0 0 * * *',
-//   async () => {
-//     await initScraper();
-//     console.log('Icelandic name scraper finished scaping data at: ', new Date().toDateString());
-//   },
-//   null,
-//   true,
-//   'Atlantic/Reykjavik'
-// );
+const { CronJob } = cron;
 
-//initScraper();
+// Tasks runs job as soon as it ticks over to the new month at 00:00 hours
+CronJob(
+  '0 0 1 * *',
+  async () => {
+    await initScraper();
+    // eslint-disable-next-line
+    console.log('Icelandic name scraper finished scaping data at: ', new Date().toDateString());
+  },
+  null,
+  true,
+  'Atlantic/Reykjavik',
+);
 
-// Connect to Postgresql database
-dbQuery('SELECT * from bin limit 10');
+initScraper();
 
 /**
  * Gets all names
@@ -107,4 +103,5 @@ app.get('/names/middle', async (req, res) => {
   }
 });
 
+// eslint-disable-next-line
 app.listen(process.env.PORT, () => console.log(`Server listening on port ${process.env.PORT}`));

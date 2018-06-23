@@ -26,7 +26,7 @@ export function readFileAsync(path, opts = 'utf8') {
  */
 export function writeFileAsync(path, data, opts = 'utf8') {
   return new Promise((resolve, reject) => {
-    fs.writeFile(path, data, opts, err => {
+    fs.writeFile(path, data, opts, (err) => {
       if (err) {
         return reject(err);
       }
@@ -59,7 +59,12 @@ export function readDirAsync(path) {
 export function existsSyncAsync(path) {
   return new Promise((resolve, reject) => {
     const exists = fs.existsSync(path);
-    return exists ? resolve(true) : reject(false);
+
+    if (exists) {
+      return resolve(true);
+    }
+
+    return reject(new Error(false));
   });
 }
 
@@ -70,7 +75,7 @@ export function existsSyncAsync(path) {
 export function createDirectorys(dir) {
   return new Promise((resolve, reject) => {
     try {
-      fs.exists(dir, async exists => {
+      return fs.exists(dir, async (exists) => {
         if (!exists) {
           await mkdirp(dir);
         }
@@ -78,7 +83,7 @@ export function createDirectorys(dir) {
         return resolve(dir);
       });
     } catch (error) {
-      return reject(`Failed to create directory ${dir}`);
+      return reject(error);
     }
   });
 }

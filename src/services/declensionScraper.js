@@ -26,11 +26,11 @@ function parseNameDeclensionFirstResponse($, ul) {
         .find('a')
         .attr('onclick');
 
-      responseVal = onClickAttrVal.match(/\d+/g)[0];
+      responseVal = onClickAttrVal.match(/\d+/g);
     }
   });
 
-  return responseVal;
+  return responseVal[0];
 }
 
 /**
@@ -84,7 +84,7 @@ function parseNameDeclensions(html) {
   const þf = getValuesFromRow($, þfEl);
   const þgf = getValuesFromRow($, þgfEl);
   const ef = getValuesFromRow($, efEl);
-  //console.log(nf, þf, þgf, ef);
+
   if (nf && þf && þgf && ef) {
     declesionArr.push(nf, þf, þgf, ef);
   }

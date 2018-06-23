@@ -1,15 +1,14 @@
 import cheerio from 'cheerio';
-import getNameDeclension from './declensionScraper';
+import getDeclensionByName from '../database/icelandic';
 import fetchHTML from '../utils/fetchHtml';
 import createUUID from '../utils/createUUID';
 import { writeFileAsync } from '../utils/fileHelpers';
-import delayPromiseBatches from '../utils/delayPromiseBatches';
 
 const CHEERIO_OPTIONS = { normalizeWhitespace: true };
 
 /**
  * Creates letter indexes and alhpabet array
- * @param {Array} list - list of names object { id: '4n5pxq24kpiob12og9', name: 'Jon', subtitle: 'More info' }
+ * @param {Array} list - list of names object
  * @returns {Object}
  */
 function getLetterIndexesAndAlhpabet(list) {
@@ -43,31 +42,57 @@ function getLetterIndexesAndAlhpabet(list) {
 function getDataFromList($, arr) {
   return arr
     .map((i, el) => {
-      if (el.children.length === 0) return;
+      let returnValue;
 
-      const name = $(el.children[0])
-        .text()
-        .trim();
-      const obj = {
-        id: createUUID(name),
-        name,
-        verdict: null,
-        declesions: null,
-      };
-
-      if (el.children.length > 1) {
-        const subtitle = $(el.children[1])
+      if (el.children.length > 0) {
+        const name = $(el.children[0])
           .text()
           .trim();
+        const obj = {
+          id: createUUID(name),
+          name,
+          verdict: null,
+          declesions: null,
+        };
 
-        if (subtitle) {
-          obj.subtitle = subtitle;
+        if (el.children.length > 1) {
+          const subtitle = $(el.children[1])
+            .text()
+            .trim();
+
+          if (subtitle) {
+            obj.subtitle = subtitle;
+          }
         }
+
+        returnValue = obj;
       }
 
-      return obj;
+      return returnValue;
     })
     .toArray();
+}
+
+/**
+ * Gets name declesions for every name in list and
+ * returns list with new property declesions
+ *
+ * @param {Array<Object>} list - Array of objects
+ * @returns {Array<Object>}
+ */
+async function getNameDeclesionsForList(list) {
+  const arr = list;
+
+  try {
+    for (let i = 0; i < arr.length; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      arr[i].declesions = await getDeclensionByName(arr[i].name);
+    }
+
+    return arr;
+  } catch (error) {
+    return new Error(error);
+  }
 }
 
 /**
@@ -92,9 +117,7 @@ function parseNamesHtml(html) {
       const middleLen = middleNamesList.length;
       const mergedList = [...boysNamesList, ...girlsNamesList, ...middleNamesList];
       // Add declesions to items in list
-      console.log('TempList before');
       const tempList = await getNameDeclesionsForList(mergedList);
-      console.log('TempList after');
 
       // Split list up again. Now with declesions
       boysNamesList = tempList.splice(0, boysLen);
@@ -107,54 +130,17 @@ function parseNamesHtml(html) {
         middle: getLetterIndexesAndAlhpabet(middleNamesList),
       });
     } catch (error) {
-      console.log(error);
       return reject(error);
     }
   });
 }
 
 /**
- * Gets name declesions for every name in list and
- * returns list with new gotten name declesions property
- *
- * @param {Array<Object>} list - Array of objects
- * @returns {Array<Object>}
- */
-async function getNameDeclesionsForList(list) {
-  try {
-    const chunkSize = 10;
-    const promises = [];
-
-    // Iterate list and create multiple promises
-    for (let i = 0; i < list.length; i += 1) {
-      const name = list[i].name;
-      promises.push(getNameDeclension(name));
-    }
-
-    const declesionsList = await delayPromiseBatches(promises, chunkSize, 1000);
-
-    for (let i = 0; i < declesionsList.length; i += 1) {
-      if (Array.isArray(declesionsList[i]) && declesionsList[i].length > 0) {
-        list[i].declesions = declesionsList[i];
-      }
-    }
-
-    return list;
-  } catch (error) {
-    return new Error(error);
-  }
-}
-
-/**
  * Initializes Icelandic names scraper
  */
 export default async function initScraper() {
-  // const test = await getNameDeclension('marteinn');
-  // console.log('test', test);
-  // return;
   try {
-    const url =
-      'https://www.island.is/mannanofn/leit-ad-nafni/?Nafn=&Stulkur=on&Drengir=on&Millinofn=on';
+    const url = 'https://www.island.is/mannanofn/leit-ad-nafni/?Nafn=&Stulkur=on&Drengir=on&Millinofn=on';
     const html = await fetchHTML(url);
     const data = await parseNamesHtml(html);
     await writeFileAsync('./data/names.json', JSON.stringify(data));
