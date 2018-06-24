@@ -13,7 +13,7 @@ CronJob(
   '0 0 1 * *',
   async () => {
     await initScraper();
-    // eslint-disable-next-line
+    /* eslint-disable-next-line no-console */
     console.log('Icelandic name scraper finished scaping data at: ', new Date().toDateString());
   },
   null,

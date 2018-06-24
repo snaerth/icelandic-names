@@ -3,6 +3,7 @@ import getDeclensionByName from '../database/icelandic';
 import fetchHTML from '../utils/fetchHtml';
 import createUUID from '../utils/createUUID';
 import { writeFileAsync } from '../utils/fileHelpers';
+import splitToChunks from '../utils/splitToChunks';
 
 const CHEERIO_OPTIONS = { normalizeWhitespace: true };
 
@@ -82,11 +83,28 @@ function getDataFromList($, arr) {
  */
 async function getNameDeclesionsForList(list) {
   const arr = list;
+  const promisesArr = [];
+  const valuesArr = [];
 
   try {
+    // Create all promises
     for (let i = 0; i < arr.length; i += 1) {
-      // eslint-disable-next-line no-await-in-loop
-      arr[i].declesions = await getDeclensionByName(arr[i].name);
+      promisesArr.push(getDeclensionByName(arr[i].name));
+    }
+
+    // Split promises into array chunks with 10 items in each chunk
+    const promisesChunks = splitToChunks(promisesArr, 10);
+
+    // Execute parallel 10 promises at a time and
+    // wait for each chunk to finish.
+    // By doing this we minimize load on the server
+    for (let i = 0; i < promisesChunks.length; i += 1) {
+      valuesArr.push(await Promise.all(promisesChunks[i])); // eslint-disable-line no-await-in-loop
+    }
+
+    // Add values from promises to arr
+    for (let i = 0; i < valuesArr.length; i += 1) {
+      arr[i].declesions = valuesArr[i];
     }
 
     return arr;
