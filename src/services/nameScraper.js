@@ -99,7 +99,12 @@ async function getNameDeclesionsForList(list) {
     // wait for each chunk to finish.
     // By doing this we minimize load on the server
     for (let i = 0; i < promisesChunks.length; i += 1) {
-      valuesArr.push(await Promise.all(promisesChunks[i])); // eslint-disable-line no-await-in-loop
+      // eslint-disable-next-line no-await-in-loop
+      const tempValues = await Promise.all(promisesChunks[i]);
+
+      for (let j = 0; j < tempValues.length; j += 1) {
+        valuesArr.push(tempValues[j]);
+      }
     }
 
     // Add values from promises to arr

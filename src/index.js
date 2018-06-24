@@ -7,6 +7,7 @@ process.env = JSON.parse(JSON.stringify(process.env));
 
 const app = express();
 const { CronJob } = cron;
+const finishedScrapingMessage = 'Icelandic name scraper finished scaping data at: ';
 
 // Tasks runs job as soon as it ticks over to the new month at 00:00 hours
 CronJob(
@@ -14,14 +15,19 @@ CronJob(
   async () => {
     await initScraper();
     /* eslint-disable-next-line no-console */
-    console.log('Icelandic name scraper finished scaping data at: ', new Date().toDateString());
+    console.log(finishedScrapingMessage, new Date().toDateString());
   },
   null,
   true,
   'Atlantic/Reykjavik',
 );
 
-initScraper();
+// IFEE to execute scaper
+(async () => {
+  await initScraper();
+  /* eslint-disable-next-line no-console */
+  console.log(finishedScrapingMessage, new Date().toDateString());
+})();
 
 /**
  * Gets all names

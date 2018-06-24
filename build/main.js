@@ -197,15 +197,21 @@ process.env = JSON.parse(JSON.stringify(process.env));
 
 const app = __WEBPACK_IMPORTED_MODULE_0_express___default()();
 const { CronJob } = __WEBPACK_IMPORTED_MODULE_1_cron___default.a;
+const finishedScrapingMessage = 'Icelandic name scraper finished scaping data at: ';
 
 // Tasks runs job as soon as it ticks over to the new month at 00:00 hours
 CronJob('0 0 1 * *', async () => {
   await Object(__WEBPACK_IMPORTED_MODULE_3__services_nameScraper__["a" /* default */])();
   /* eslint-disable-next-line no-console */
-  console.log('Icelandic name scraper finished scaping data at: ', new Date().toDateString());
+  console.log(finishedScrapingMessage, new Date().toDateString());
 }, null, true, 'Atlantic/Reykjavik');
 
-Object(__WEBPACK_IMPORTED_MODULE_3__services_nameScraper__["a" /* default */])();
+// IFEE to execute scaper
+(async () => {
+  await Object(__WEBPACK_IMPORTED_MODULE_3__services_nameScraper__["a" /* default */])();
+  /* eslint-disable-next-line no-console */
+  console.log(finishedScrapingMessage, new Date().toDateString());
+})();
 
 /**
  * Gets all names
@@ -405,29 +411,33 @@ function getDataFromList($, arr) {
  */
 async function getNameDeclesionsForList(list) {
   const arr = list;
-  const promises = [];
-  const values = [];
+  const promisesArr = [];
+  const valuesArr = [];
 
   try {
+    // Create all promises
     for (let i = 0; i < arr.length; i += 1) {
-      promises.push(Object(__WEBPACK_IMPORTED_MODULE_1__database_icelandic__["a" /* default */])(arr[i].name));
-      // The reason for not using Promise.all
-      // is too minimize load on database
-      // // eslint-disable-next-line no-await-in-loop
-      // arr[i].declesions = await getDeclensionByName(arr[i].name);
-      // const declesions = await getDeclensionByName(arr[i].name);
-      // console.log(declesions);
-      // arr[i].declesions = declesions;
+      promisesArr.push(Object(__WEBPACK_IMPORTED_MODULE_1__database_icelandic__["a" /* default */])(arr[i].name));
     }
 
-    const promisesChunks = Object(__WEBPACK_IMPORTED_MODULE_5__utils_splitToChunks__["a" /* default */])(promises, 50);
+    // Split promises into array chunks with 10 items in each chunk
+    const promisesChunks = Object(__WEBPACK_IMPORTED_MODULE_5__utils_splitToChunks__["a" /* default */])(promisesArr, 10);
 
-    for (let i = 0; i < promisesChunks.length; i++) {
-      values.push((await Promise.all(promisesChunks[i])));
-      console.log(values);
+    // Execute parallel 10 promises at a time and
+    // wait for each chunk to finish.
+    // By doing this we minimize load on the server
+    for (let i = 0; i < promisesChunks.length; i += 1) {
+      const tempValues = await Promise.all(promisesChunks[i]); // eslint-disable-line no-await-in-loop
+
+      for (let j = 0; j < tempValues.length; j += 1) {
+        valuesArr.push(tempValues[j]);
+      }
     }
 
-    console.log('Finished');
+    // Add values from promises to arr
+    for (let i = 0; i < valuesArr.length; i += 1) {
+      arr[i].declesions = valuesArr[i];
+    }
 
     return arr;
   } catch (error) {
@@ -478,7 +488,7 @@ function parseNamesHtml(html) {
 /**
  * Initializes Icelandic names scraper
  */
-/* harmony default export */ __webpack_exports__["a"] = (async function initScraper() {
+/* harmony default export */ __webpack_exports__["a"] = (async function initScraper(cb) {
   try {
     const url = 'https://www.island.is/mannanofn/leit-ad-nafni/?Nafn=&Stulkur=on&Drengir=on&Millinofn=on';
     const html = await Object(__WEBPACK_IMPORTED_MODULE_2__utils_fetchHtml__["a" /* default */])(url);
@@ -629,13 +639,13 @@ function parseDeclesionNameRes(row) {
   for (let i = 0; i < row.length; i += 1) {
     const { greiningarstrengur, beygingarmynd } = row[i];
 
-    if (/NF/.test(greiningarstrengur)) {
+    if (/^NFET$/.test(greiningarstrengur)) {
       arr[0] = beygingarmynd;
-    } else if (/ÞF/.test(greiningarstrengur)) {
+    } else if (/^ÞFET$/.test(greiningarstrengur)) {
       arr[1] = beygingarmynd;
-    } else if (/ÞGF/.test(greiningarstrengur)) {
+    } else if (/^ÞGFET$/.test(greiningarstrengur)) {
       arr[2] = beygingarmynd;
-    } else if (/EF/.test(greiningarstrengur)) {
+    } else if (/^EFET$/.test(greiningarstrengur)) {
       arr[3] = beygingarmynd;
     }
   }

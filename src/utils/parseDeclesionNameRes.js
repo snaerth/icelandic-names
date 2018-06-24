@@ -11,13 +11,13 @@ export default function parseDeclesionNameRes(row) {
   for (let i = 0; i < row.length; i += 1) {
     const { greiningarstrengur, beygingarmynd } = row[i];
 
-    if (/NF/.test(greiningarstrengur)) {
+    if (/^NFET$/.test(greiningarstrengur)) {
       arr[0] = beygingarmynd;
-    } else if (/ÞF/.test(greiningarstrengur)) {
+    } else if (/^ÞFET$/.test(greiningarstrengur)) {
       arr[1] = beygingarmynd;
-    } else if (/ÞGF/.test(greiningarstrengur)) {
+    } else if (/^ÞGFET$/.test(greiningarstrengur)) {
       arr[2] = beygingarmynd;
-    } else if (/EF/.test(greiningarstrengur)) {
+    } else if (/^EFET$/.test(greiningarstrengur)) {
       arr[3] = beygingarmynd;
     }
   }
