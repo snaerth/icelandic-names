@@ -10,17 +10,17 @@ const { CronJob } = cron;
 const finishedScrapingMessage = 'Icelandic name scraper finished scaping data at: ';
 
 // Tasks runs job as soon as it ticks over to the new month at 00:00 hours
-CronJob(
-  '0 0 1 * *',
-  async () => {
-    await initScraper();
-    /* eslint-disable-next-line no-console */
-    console.log(finishedScrapingMessage, new Date().toDateString());
-  },
-  null,
-  true,
-  'Atlantic/Reykjavik',
-);
+// CronJob(
+//   '0 0 1 * *',
+//   async () => {
+//     await initScraper();
+//     /* eslint-disable-next-line no-console */
+//     console.log(finishedScrapingMessage, new Date().toDateString());
+//   },
+//   null,
+//   true,
+//   'Atlantic/Reykjavik',
+// );
 
 // IFEE to execute scaper
 (async () => {

@@ -1,4 +1,5 @@
 import cheerio from 'cheerio';
+import namesCountArr from '../data/namesCount.json';
 import getDeclensionByName from '../database/icelandic';
 import fetchHTML from '../utils/fetchHtml';
 import createUUID from '../utils/createUUID';
@@ -75,6 +76,31 @@ function getDataFromList($, arr) {
 }
 
 /**
+ * Iterates through list and namesCountArr and finds matching
+ * person names
+
+ *
+ * @param {Object} arr - Array of list
+ * @returns {Object} - { cnt1: Number, cnt2: Number }
+ * @example addNameCount('Snær') = { cnt1: 9, cnt2: 1408 }
+ */
+function addNameCountPropsToList(list) {
+  for (let i = 0; i < list.length; i += 1) {
+    for (let j = 0; j < namesCountArr.length; j += 1) {
+      const item = namesCountArr[j];
+
+      if (item.Nafn === list[i].name) {
+        list[i].cnt1 = item.Fjoldi1;
+        list[i].cnt2 = item.Fjoldi2;
+        break;
+      }
+    }
+  }
+
+  return list;
+}
+
+/**
  * Gets name declesions for every name in list and
  * returns list with new property declesions
  *
@@ -139,8 +165,9 @@ function parseNamesHtml(html) {
       const girlsLen = girlsNamesList.length;
       const middleLen = middleNamesList.length;
       const mergedList = [...boysNamesList, ...girlsNamesList, ...middleNamesList];
+      let tempList = addNameCountPropsToList(mergedList);
       // Add declesions to items in list
-      const tempList = await getNameDeclesionsForList(mergedList);
+      // tempList = await getNameDeclesionsForList(mergedList);
 
       // Split list up again. Now with declesions
       boysNamesList = tempList.splice(0, boysLen);
@@ -163,10 +190,11 @@ function parseNamesHtml(html) {
  */
 export default async function initScraper() {
   try {
-    const url = 'https://www.island.is/mannanofn/leit-ad-nafni/?Nafn=&Stulkur=on&Drengir=on&Millinofn=on';
+    const url =
+      'https://www.island.is/mannanofn/leit-ad-nafni/?Nafn=&Stulkur=on&Drengir=on&Millinofn=on';
     const html = await fetchHTML(url);
     const data = await parseNamesHtml(html);
-    await writeFileAsync('./data/names.json', JSON.stringify(data));
+    await writeFileAsync('./src/data/names_test.json', JSON.stringify(data));
     return true;
   } catch (error) {
     throw new Error(error);
