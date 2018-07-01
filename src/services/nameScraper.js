@@ -165,7 +165,7 @@ function parseNamesHtml(html) {
       const girlsLen = girlsNamesList.length;
       const middleLen = middleNamesList.length;
       const mergedList = [...boysNamesList, ...girlsNamesList, ...middleNamesList];
-      let tempList = addNameCountPropsToList(mergedList);
+      const tempList = addNameCountPropsToList(mergedList);
       // Add declesions to items in list
       // tempList = await getNameDeclesionsForList(mergedList);
 
@@ -190,8 +190,7 @@ function parseNamesHtml(html) {
  */
 export default async function initScraper() {
   try {
-    const url =
-      'https://www.island.is/mannanofn/leit-ad-nafni/?Nafn=&Stulkur=on&Drengir=on&Millinofn=on';
+    const url = 'https://www.island.is/mannanofn/leit-ad-nafni/?Nafn=&Stulkur=on&Drengir=on&Millinofn=on';
     const html = await fetchHTML(url);
     const data = await parseNamesHtml(html);
     await writeFileAsync('./src/data/names_test.json', JSON.stringify(data));
