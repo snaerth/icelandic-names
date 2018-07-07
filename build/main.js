@@ -62,7 +62,7 @@ module.exports =
 /******/ 	__webpack_require__.p = "/";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ 	return __webpack_require__(__webpack_require__.s = 3);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -75,9 +75,9 @@ module.exports =
 /* unused harmony export readDirAsync */
 /* unused harmony export existsSyncAsync */
 /* unused harmony export createDirectorys */
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_fs__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_fs__ = __webpack_require__(6);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_fs___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_fs__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_mkdirp__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_mkdirp__ = __webpack_require__(7);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_mkdirp___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_mkdirp__);
 
 
@@ -171,24 +171,52 @@ function createDirectorys(dir) {
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-module.exports = __webpack_require__(2);
-
+module.exports = require("cheerio");
 
 /***/ }),
 /* 2 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_express__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_express___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_express__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_cron__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_cron___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_cron__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utils_fileHelpers__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__services_nameScraper__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_node_fetch__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_node_fetch___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_node_fetch__);
 
+
+/**
+ * Fetches HTML string from desired page
+ *
+ * @param {String} url - Website url
+ * @returns {String} HTML string
+ */
+/* harmony default export */ __webpack_exports__["a"] = (async function fetchHTML(url) {
+  try {
+    const res = await __WEBPACK_IMPORTED_MODULE_0_node_fetch___default()(url, { timeout: 3000 });
+    const html = await res.text();
+    return html;
+  } catch (error) {
+    return error;
+  }
+});
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(4);
+
+
+/***/ }),
+/* 4 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_express__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_express___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_express__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__utils_fileHelpers__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__services_nameScraper__ = __webpack_require__(8);
 
 
 
@@ -196,25 +224,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 process.env = JSON.parse(JSON.stringify(process.env));
 
 const app = __WEBPACK_IMPORTED_MODULE_0_express___default()();
-const { CronJob } = __WEBPACK_IMPORTED_MODULE_1_cron___default.a;
 const finishedScrapingMessage = 'Icelandic name scraper finished scaping data at: ';
-
-// Tasks runs job as soon as it ticks over to the new month at 00:00 hours
-// CronJob(
-//   '0 0 1 * *',
-//   async () => {
-//     await initScraper();
-//     /* eslint-disable-next-line no-console */
-//     console.log(finishedScrapingMessage, new Date().toDateString());
-//   },
-//   null,
-//   true,
-//   'Atlantic/Reykjavik',
-// );
 
 // IFEE to execute scaper
 (async () => {
-  await Object(__WEBPACK_IMPORTED_MODULE_3__services_nameScraper__["a" /* default */])();
+  await Object(__WEBPACK_IMPORTED_MODULE_2__services_nameScraper__["a" /* default */])();
   /* eslint-disable-next-line no-console */
   console.log(finishedScrapingMessage, new Date().toDateString());
 })();
@@ -224,13 +238,13 @@ const finishedScrapingMessage = 'Icelandic name scraper finished scaping data at
  */
 app.get('/names', async (req, res) => {
   try {
-    const data = await Object(__WEBPACK_IMPORTED_MODULE_2__utils_fileHelpers__["a" /* readFileAsync */])('./data/names.json');
+    const data = await Object(__WEBPACK_IMPORTED_MODULE_1__utils_fileHelpers__["a" /* readFileAsync */])('./src/data/names.json');
 
     return res.status(200).json(JSON.parse(data));
   } catch (error) {
     // If names.json dosen't exist
     if (error.code === 'ENOENT') {
-      const data = await Object(__WEBPACK_IMPORTED_MODULE_2__utils_fileHelpers__["a" /* readFileAsync */])('./data/names_backup.json');
+      const data = await Object(__WEBPACK_IMPORTED_MODULE_1__utils_fileHelpers__["a" /* readFileAsync */])('./src/data/names_backup.json');
 
       return res.status(200).json(JSON.parse(data));
     }
@@ -244,13 +258,13 @@ app.get('/names', async (req, res) => {
  */
 app.get('/names/boys', async (req, res) => {
   try {
-    const data = await Object(__WEBPACK_IMPORTED_MODULE_2__utils_fileHelpers__["a" /* readFileAsync */])('./data/names.json');
+    const data = await Object(__WEBPACK_IMPORTED_MODULE_1__utils_fileHelpers__["a" /* readFileAsync */])('./src/data/names.json');
     const parsedData = JSON.parse(data);
     return res.status(200).json(parsedData.boys);
   } catch (error) {
     // If names.json dosen't exist
     if (error.code === 'ENOENT') {
-      const data = await Object(__WEBPACK_IMPORTED_MODULE_2__utils_fileHelpers__["a" /* readFileAsync */])('./data/names_backup.json');
+      const data = await Object(__WEBPACK_IMPORTED_MODULE_1__utils_fileHelpers__["a" /* readFileAsync */])('./src/data/names_backup.json');
       const parsedData = JSON.parse(data);
       return res.status(200).json(parsedData.boys);
     }
@@ -264,13 +278,13 @@ app.get('/names/boys', async (req, res) => {
  */
 app.get('/names/girls', async (req, res) => {
   try {
-    const data = await Object(__WEBPACK_IMPORTED_MODULE_2__utils_fileHelpers__["a" /* readFileAsync */])('./data/names.json');
+    const data = await Object(__WEBPACK_IMPORTED_MODULE_1__utils_fileHelpers__["a" /* readFileAsync */])('./src/data/names.json');
     const parsedData = JSON.parse(data);
     return res.status(200).json(parsedData.girls);
   } catch (error) {
     // If names.json dosen't exist
     if (error.code === 'ENOENT') {
-      const data = await Object(__WEBPACK_IMPORTED_MODULE_2__utils_fileHelpers__["a" /* readFileAsync */])('./data/names_backup.json');
+      const data = await Object(__WEBPACK_IMPORTED_MODULE_1__utils_fileHelpers__["a" /* readFileAsync */])('./src/data/names_backup.json');
       const parsedData = JSON.parse(data);
       return res.status(200).json(parsedData.girls);
     }
@@ -284,13 +298,13 @@ app.get('/names/girls', async (req, res) => {
  */
 app.get('/names/middle', async (req, res) => {
   try {
-    const data = await Object(__WEBPACK_IMPORTED_MODULE_2__utils_fileHelpers__["a" /* readFileAsync */])('./data/names.json');
+    const data = await Object(__WEBPACK_IMPORTED_MODULE_1__utils_fileHelpers__["a" /* readFileAsync */])('./src/data/names.json');
     const parsedData = JSON.parse(data);
     return res.status(200).json(parsedData.middle);
   } catch (error) {
     // If names.json dosen't exist
     if (error.code === 'ENOENT') {
-      const data = await Object(__WEBPACK_IMPORTED_MODULE_2__utils_fileHelpers__["a" /* readFileAsync */])('./data/names_backup.json');
+      const data = await Object(__WEBPACK_IMPORTED_MODULE_1__utils_fileHelpers__["a" /* readFileAsync */])('./src/data/names_backup.json');
       const parsedData = JSON.parse(data);
       return res.status(200).json(parsedData.middle);
     }
@@ -303,43 +317,39 @@ app.get('/names/middle', async (req, res) => {
 app.listen(process.env.PORT, () => console.log(`Server listening on port ${process.env.PORT}`));
 
 /***/ }),
-/* 3 */
+/* 5 */
 /***/ (function(module, exports) {
 
 module.exports = require("express");
 
 /***/ }),
-/* 4 */
-/***/ (function(module, exports) {
-
-module.exports = require("cron");
-
-/***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports) {
 
 module.exports = require("fs");
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports) {
 
 module.exports = require("mkdirp");
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_cheerio__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_cheerio__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_cheerio___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_cheerio__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__data_namesCount_json__ = __webpack_require__(9);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__data_namesCount_json___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__data_namesCount_json__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__database_icelandic__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utils_fetchHtml__ = __webpack_require__(17);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__utils_createUUID__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__utils_fetchHtml__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__utils_createUUID__ = __webpack_require__(18);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__utils_fileHelpers__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__utils_splitToChunks__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__utils_splitToChunks__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__nameMeaningScraper__ = __webpack_require__(21);
+
 
 
 
@@ -356,10 +366,11 @@ const CHEERIO_OPTIONS = { normalizeWhitespace: true };
  * @returns {Object}
  */
 function getLetterIndexesAndAlhpabet(list) {
+  const tempList = [...list]; // copy of the list Array
   const alphabet = [];
   let i = 0;
 
-  const letterIndexes = list.reduce((acc, curr) => {
+  const letterIndexes = tempList.reduce((acc, curr) => {
     if (acc[curr.name[0]] === undefined) {
       acc[curr.name[0]] = i;
       alphabet.push(curr.name[0]);
@@ -371,8 +382,7 @@ function getLetterIndexesAndAlhpabet(list) {
 
   return {
     alphabet,
-    letterIndexes,
-    list
+    letterIndexes
   };
 }
 
@@ -381,9 +391,10 @@ function getLetterIndexesAndAlhpabet(list) {
  *
  * @param {Function} $ - Cheerio function reference
  * @param {Object} arr - Cheerio parsed html object
+ * @param {String} gender - Gender type kk or kvk
  * @returns {Array}
  */
-function getDataFromList($, arr) {
+function getDataFromList($, arr, gender = null) {
   return arr.map((i, el) => {
     let returnValue;
 
@@ -393,14 +404,19 @@ function getDataFromList($, arr) {
         id: Object(__WEBPACK_IMPORTED_MODULE_4__utils_createUUID__["a" /* default */])(name),
         name,
         verdict: null,
-        declesions: null
+        meaning: null
       };
 
-      if (el.children.length > 1) {
-        const subtitle = $(el.children[1]).text().trim();
+      if (gender !== null) {
+        obj.gender = gender;
+        obj.declesions = null;
+      }
 
-        if (subtitle) {
-          obj.subtitle = subtitle;
+      if (el.children.length > 1) {
+        const verdict = $(el.children[1]).text().trim();
+
+        if (verdict) {
+          obj.verdict = verdict;
         }
       }
 
@@ -414,11 +430,10 @@ function getDataFromList($, arr) {
 /**
  * Iterates through list and namesCountArr and finds matching
  * person names
-
  *
  * @param {Object} arr - Array of list
  * @returns {Object} - { cnt1: Number, cnt2: Number }
- * @example addNameCount('Snær') = { cnt1: 9, cnt2: 1408 }
+ * @example addNameCountPropsToList('Snær') = { cnt1: 9, cnt2: 1408 }
  */
 function addNameCountPropsToList(list) {
   for (let i = 0; i < list.length; i += 1) {
@@ -476,7 +491,7 @@ async function getNameDeclesionsForList(list) {
 
     return arr;
   } catch (error) {
-    return new Error(error);
+    throw new Error(error);
   }
 }
 
@@ -494,26 +509,42 @@ function parseNamesHtml(html) {
       const boysNamesObj = $(nameTypeList[0]).find('ul.dir li');
       const girlsNamesObj = $(nameTypeList[1]).find('ul.dir li');
       const middleNamesObj = $(nameTypeList[2]).find('ul.dir li');
-      let boysNamesList = getDataFromList($, boysNamesObj);
-      let girlsNamesList = getDataFromList($, girlsNamesObj);
+      let boysNamesList = getDataFromList($, boysNamesObj, 'kk');
+      let girlsNamesList = getDataFromList($, girlsNamesObj, 'kvk');
       let middleNamesList = getDataFromList($, middleNamesObj);
       const boysLen = boysNamesList.length;
       const girlsLen = girlsNamesList.length;
       const middleLen = middleNamesList.length;
-      const mergedList = [...boysNamesList, ...girlsNamesList, ...middleNamesList];
-      let tempList = addNameCountPropsToList(mergedList);
-      // Add declesions to items in list
-      // tempList = await getNameDeclesionsForList(mergedList);
+      let mergedList = [...boysNamesList, ...girlsNamesList, ...middleNamesList];
+      mergedList = addNameCountPropsToList(mergedList);
+      // Get name meanings list
+      const namesMeaningsList = await Object(__WEBPACK_IMPORTED_MODULE_7__nameMeaningScraper__["a" /* default */])();
 
+      // Add name meanings to items in list if there is a match
+      for (let i = 0; i < mergedList.length; i += 1) {
+        for (let j = 0; j < namesMeaningsList.length; j++) {
+          if (namesMeaningsList[j].name === mergedList[i].name) {
+            mergedList[i].meaning = namesMeaningsList[j].meaning;
+          }
+        }
+      }
+
+      mergedList = await getNameDeclesionsForList(mergedList);
       // Split list up again. Now with declesions
-      boysNamesList = tempList.splice(0, boysLen);
-      girlsNamesList = tempList.splice(boysLen, boysLen + girlsLen);
-      middleNamesList = tempList.splice(boysLen + girlsLen, boysLen + girlsLen + middleLen);
+      boysNamesList = [...mergedList].splice(0, boysLen);
+      girlsNamesList = [...mergedList].splice(boysLen, boysLen + girlsLen);
+      middleNamesList = [...mergedList].splice(boysLen + girlsLen, boysLen + girlsLen + middleLen);
 
       return resolve({
-        boys: getLetterIndexesAndAlhpabet(boysNamesList),
-        girls: getLetterIndexesAndAlhpabet(girlsNamesList),
-        middle: getLetterIndexesAndAlhpabet(middleNamesList)
+        boys: Object.assign({}, getLetterIndexesAndAlhpabet(boysNamesList), {
+          list: boysNamesList
+        }),
+        girls: Object.assign({}, getLetterIndexesAndAlhpabet(girlsNamesList), {
+          list: girlsNamesList
+        }),
+        middle: Object.assign({}, getLetterIndexesAndAlhpabet(middleNamesList), {
+          list: middleNamesList
+        })
       });
     } catch (error) {
       return reject(error);
@@ -535,12 +566,6 @@ function parseNamesHtml(html) {
     throw new Error(error);
   }
 });
-
-/***/ }),
-/* 8 */
-/***/ (function(module, exports) {
-
-module.exports = require("cheerio");
 
 /***/ }),
 /* 9 */
@@ -713,42 +738,17 @@ function capitalizeFirstLetter(str) {
 
 /***/ }),
 /* 17 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_node_fetch__ = __webpack_require__(18);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_node_fetch___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_node_fetch__);
-
-
-/**
- * Fetches HTML string from desired page
- *
- * @param {String} url - Website url
- * @returns {String} HTML string
- */
-/* harmony default export */ __webpack_exports__["a"] = (async function fetchHTML(url) {
-  try {
-    const res = await __WEBPACK_IMPORTED_MODULE_0_node_fetch___default()(url, { timeout: 3000 });
-    const html = await res.text();
-    return html;
-  } catch (error) {
-    return error;
-  }
-});
-
-/***/ }),
-/* 18 */
 /***/ (function(module, exports) {
 
 module.exports = require("node-fetch");
 
 /***/ }),
-/* 19 */
+/* 18 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = createUUID;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_uuid_v3__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_uuid_v3__ = __webpack_require__(19);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_uuid_v3___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_uuid_v3__);
 
 
@@ -767,13 +767,13 @@ function createUUID(str) {
 }
 
 /***/ }),
-/* 20 */
+/* 19 */
 /***/ (function(module, exports) {
 
 module.exports = require("uuid/v3");
 
 /***/ }),
-/* 21 */
+/* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -796,6 +796,70 @@ function splitToChunks(arr, chunk) {
 
   return chunkArr;
 }
+
+/***/ }),
+/* 21 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_cheerio__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_cheerio___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_cheerio__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__utils_fetchHtml__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__utils_capitalizeFirstLetter__ = __webpack_require__(16);
+
+
+
+
+const CHEERIO_OPTIONS = { normalizeWhitespace: true };
+
+/**
+ * Parses html for name meanings
+ *
+ * @param {String} html - HTML string
+ * @returns {Array<Object>}
+ */
+function parseHTML(html) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const returnList = [];
+      const $ = __WEBPACK_IMPORTED_MODULE_0_cheerio___default.a.load(html, CHEERIO_OPTIONS);
+      const arr = $('ul.list.list-men');
+      if (arr.length > 0) {
+        arr.each((idx, el) => {
+          $(el).find('li').each((i, li) => {
+            const name = $(li).find('.name').text();
+            const meaning = $(li).find('.name-desc').text();
+
+            returnList.push({
+              name: Object(__WEBPACK_IMPORTED_MODULE_2__utils_capitalizeFirstLetter__["a" /* default */])(name),
+              meaning: Object(__WEBPACK_IMPORTED_MODULE_2__utils_capitalizeFirstLetter__["a" /* default */])(meaning)
+            });
+          });
+        });
+      }
+
+      return resolve(returnList);
+    } catch (error) {
+      return reject(error);
+    }
+  });
+}
+
+/**
+ * Fetches HTML for Icelandic names meanings
+ *
+ * @returns {Array<Object>}
+ */
+/* harmony default export */ __webpack_exports__["a"] = (async function getNamesMeaningsList() {
+  try {
+    const url = 'https://attavitinn.is/uncategorized/merkingar-nafna/';
+    const html = await Object(__WEBPACK_IMPORTED_MODULE_1__utils_fetchHtml__["a" /* default */])(url);
+    const parsedHTML = await parseHTML(html);
+    return parsedHTML;
+  } catch (error) {
+    return null;
+  }
+});
 
 /***/ })
 /******/ ]);

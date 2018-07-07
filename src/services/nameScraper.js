@@ -5,6 +5,7 @@ import fetchHTML from '../utils/fetchHtml';
 import createUUID from '../utils/createUUID';
 import { writeFileAsync } from '../utils/fileHelpers';
 import splitToChunks from '../utils/splitToChunks';
+import getNamesMeaningsList from './nameMeaningScraper';
 
 const CHEERIO_OPTIONS = { normalizeWhitespace: true };
 
@@ -14,10 +15,11 @@ const CHEERIO_OPTIONS = { normalizeWhitespace: true };
  * @returns {Object}
  */
 function getLetterIndexesAndAlhpabet(list) {
+  const tempList = [...list]; // copy of the list Array
   const alphabet = [];
   let i = 0;
 
-  const letterIndexes = list.reduce((acc, curr) => {
+  const letterIndexes = tempList.reduce((acc, curr) => {
     if (acc[curr.name[0]] === undefined) {
       acc[curr.name[0]] = i;
       alphabet.push(curr.name[0]);
@@ -30,7 +32,6 @@ function getLetterIndexesAndAlhpabet(list) {
   return {
     alphabet,
     letterIndexes,
-    list,
   };
 }
 
@@ -39,9 +40,10 @@ function getLetterIndexesAndAlhpabet(list) {
  *
  * @param {Function} $ - Cheerio function reference
  * @param {Object} arr - Cheerio parsed html object
+ * @param {String} gender - Gender type kk or kvk
  * @returns {Array}
  */
-function getDataFromList($, arr) {
+function getDataFromList($, arr, gender = null) {
   return arr
     .map((i, el) => {
       let returnValue;
@@ -54,16 +56,21 @@ function getDataFromList($, arr) {
           id: createUUID(name),
           name,
           verdict: null,
-          declesions: null,
+          meaning: null,
         };
 
+        if (gender !== null) {
+          obj.gender = gender;
+          obj.declesions = null;
+        }
+
         if (el.children.length > 1) {
-          const subtitle = $(el.children[1])
+          const verdict = $(el.children[1])
             .text()
             .trim();
 
-          if (subtitle) {
-            obj.subtitle = subtitle;
+          if (verdict) {
+            obj.verdict = verdict;
           }
         }
 
@@ -78,20 +85,21 @@ function getDataFromList($, arr) {
 /**
  * Iterates through list and namesCountArr and finds matching
  * person names
-
  *
  * @param {Object} arr - Array of list
  * @returns {Object} - { cnt1: Number, cnt2: Number }
- * @example addNameCount('Snær') = { cnt1: 9, cnt2: 1408 }
+ * @example addNameCountPropsToList('Snær') = { cnt1: 9, cnt2: 1408 }
  */
 function addNameCountPropsToList(list) {
-  for (let i = 0; i < list.length; i += 1) {
+  const newList = [...list];
+
+  for (let i = 0; i < newList.length; i += 1) {
     for (let j = 0; j < namesCountArr.length; j += 1) {
       const item = namesCountArr[j];
 
-      if (item.Nafn === list[i].name) {
-        list[i].cnt1 = item.Fjoldi1;
-        list[i].cnt2 = item.Fjoldi2;
+      if (item.Nafn === newList[i].name) {
+        newList[i].cnt1 = item.Fjoldi1;
+        newList[i].cnt2 = item.Fjoldi2;
         break;
       }
     }
@@ -140,7 +148,7 @@ async function getNameDeclesionsForList(list) {
 
     return arr;
   } catch (error) {
-    return new Error(error);
+    throw new Error(error);
   }
 }
 
@@ -158,26 +166,45 @@ function parseNamesHtml(html) {
       const boysNamesObj = $(nameTypeList[0]).find('ul.dir li');
       const girlsNamesObj = $(nameTypeList[1]).find('ul.dir li');
       const middleNamesObj = $(nameTypeList[2]).find('ul.dir li');
-      let boysNamesList = getDataFromList($, boysNamesObj);
-      let girlsNamesList = getDataFromList($, girlsNamesObj);
+      let boysNamesList = getDataFromList($, boysNamesObj, 'kk');
+      let girlsNamesList = getDataFromList($, girlsNamesObj, 'kvk');
       let middleNamesList = getDataFromList($, middleNamesObj);
       const boysLen = boysNamesList.length;
       const girlsLen = girlsNamesList.length;
       const middleLen = middleNamesList.length;
-      const mergedList = [...boysNamesList, ...girlsNamesList, ...middleNamesList];
-      const tempList = addNameCountPropsToList(mergedList);
-      // Add declesions to items in list
-      // tempList = await getNameDeclesionsForList(mergedList);
+      let mergedList = [...boysNamesList, ...girlsNamesList, ...middleNamesList];
+      mergedList = addNameCountPropsToList(mergedList);
+      // Get name meanings list
+      const namesMeaningsList = await getNamesMeaningsList();
 
+      // Add name meanings to items in list if there is a match
+      for (let i = 0; i < mergedList.length; i += 1) {
+        for (let j = 0; j < namesMeaningsList.length; j += 1) {
+          if (namesMeaningsList[j].name === mergedList[i].name) {
+            mergedList[i].meaning = namesMeaningsList[j].meaning;
+          }
+        }
+      }
+
+      mergedList = await getNameDeclesionsForList(mergedList);
       // Split list up again. Now with declesions
-      boysNamesList = tempList.splice(0, boysLen);
-      girlsNamesList = tempList.splice(boysLen, boysLen + girlsLen);
-      middleNamesList = tempList.splice(boysLen + girlsLen, boysLen + girlsLen + middleLen);
+      boysNamesList = [...mergedList].splice(0, boysLen);
+      girlsNamesList = [...mergedList].splice(boysLen, boysLen + girlsLen);
+      middleNamesList = [...mergedList].splice(boysLen + girlsLen, boysLen + girlsLen + middleLen);
 
       return resolve({
-        boys: getLetterIndexesAndAlhpabet(boysNamesList),
-        girls: getLetterIndexesAndAlhpabet(girlsNamesList),
-        middle: getLetterIndexesAndAlhpabet(middleNamesList),
+        boys: {
+          ...getLetterIndexesAndAlhpabet(boysNamesList),
+          list: boysNamesList,
+        },
+        girls: {
+          ...getLetterIndexesAndAlhpabet(girlsNamesList),
+          list: girlsNamesList,
+        },
+        middle: {
+          ...getLetterIndexesAndAlhpabet(middleNamesList),
+          list: middleNamesList,
+        },
       });
     } catch (error) {
       return reject(error);
