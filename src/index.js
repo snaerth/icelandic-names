@@ -1,31 +1,29 @@
 import express from 'express';
+import path from 'path';
 import { readFileAsync } from './utils/fileHelpers';
-import initScraper from './services/nameScraper';
+// import startScaper from './services';
 
 process.env = JSON.parse(JSON.stringify(process.env));
 
 const app = express();
-const finishedScrapingMessage = 'Icelandic name scraper finished scaping data at: ';
 
 // IFEE to execute scaper
-(async () => {
-  await initScraper();
-  /* eslint-disable-next-line no-console */
-  console.log(finishedScrapingMessage, new Date().toDateString());
-})();
+// Uncomment code to run scaper
+// (async () => await startScaper())();
 
 /**
  * Gets all names
  */
 app.get('/names', async (req, res) => {
   try {
-    const data = await readFileAsync('./src/data/names.json');
-
+    const data = await readFileAsync(path.join(process.cwd(), 'src', 'data', 'names.json'));
     return res.status(200).json(JSON.parse(data));
   } catch (error) {
     // If names.json dosen't exist
     if (error.code === 'ENOENT') {
-      const data = await readFileAsync('./src/data/names_backup.json');
+      const data = await readFileAsync(
+        path.join(process.cwd(), 'src', 'data', 'names_backup.json'),
+      );
 
       return res.status(200).json(JSON.parse(data));
     }
@@ -39,13 +37,15 @@ app.get('/names', async (req, res) => {
  */
 app.get('/names/boys', async (req, res) => {
   try {
-    const data = await readFileAsync('./src/data/names.json');
+    const data = await readFileAsync(path.join(process.cwd(), 'src', 'data', 'names.json'));
     const parsedData = JSON.parse(data);
     return res.status(200).json(parsedData.boys);
   } catch (error) {
     // If names.json dosen't exist
     if (error.code === 'ENOENT') {
-      const data = await readFileAsync('./src/data/names_backup.json');
+      const data = await readFileAsync(
+        path.join(process.cwd(), 'src', 'data', 'names_backup.json'),
+      );
       const parsedData = JSON.parse(data);
       return res.status(200).json(parsedData.boys);
     }
@@ -59,13 +59,15 @@ app.get('/names/boys', async (req, res) => {
  */
 app.get('/names/girls', async (req, res) => {
   try {
-    const data = await readFileAsync('./src/data/names.json');
+    const data = await readFileAsync(path.join(process.cwd(), 'src', 'data', 'names.json'));
     const parsedData = JSON.parse(data);
     return res.status(200).json(parsedData.girls);
   } catch (error) {
     // If names.json dosen't exist
     if (error.code === 'ENOENT') {
-      const data = await readFileAsync('./src/data/names_backup.json');
+      const data = await readFileAsync(
+        path.join(process.cwd(), 'src', 'data', 'names_backup.json'),
+      );
       const parsedData = JSON.parse(data);
       return res.status(200).json(parsedData.girls);
     }
@@ -79,13 +81,15 @@ app.get('/names/girls', async (req, res) => {
  */
 app.get('/names/middle', async (req, res) => {
   try {
-    const data = await readFileAsync('./src/data/names.json');
+    const data = await readFileAsync(path.join(process.cwd(), 'src', 'data', 'names.json'));
     const parsedData = JSON.parse(data);
     return res.status(200).json(parsedData.middle);
   } catch (error) {
     // If names.json dosen't exist
     if (error.code === 'ENOENT') {
-      const data = await readFileAsync('./src/data/names_backup.json');
+      const data = await readFileAsync(
+        path.join(process.cwd(), 'src', 'data', 'names_backup.json'),
+      );
       const parsedData = JSON.parse(data);
       return res.status(200).json(parsedData.middle);
     }

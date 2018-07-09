@@ -28,8 +28,12 @@ export default async function dbQuery(text, params) {
     const { rows } = await pool.query(text, params);
     const duration = Date.now() - start;
 
-    return { query: text, duration, rows };
+    return { duration, rows };
   } catch (error) {
+    if (error.code === '23505') {
+      return error.message;
+    }
+
     return new Error(error);
   }
 }

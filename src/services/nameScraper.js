@@ -1,3 +1,4 @@
+import path from 'path';
 import cheerio from 'cheerio';
 import namesCountArr from '../data/namesCount.json';
 import getDeclensionByName from '../database/icelandic';
@@ -220,7 +221,11 @@ export default async function initScraper() {
     const url = 'https://www.island.is/mannanofn/leit-ad-nafni/?Nafn=&Stulkur=on&Drengir=on&Millinofn=on';
     const html = await fetchHTML(url);
     const data = await parseNamesHtml(html);
-    await writeFileAsync('./src/data/names_test.json', JSON.stringify(data));
+    await writeFileAsync(
+      path.join(process.cwd(), 'src', 'data', 'names.json'),
+      JSON.stringify(data),
+    );
+
     return true;
   } catch (error) {
     throw new Error(error);
